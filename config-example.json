@@ -2,7 +2,8 @@
     "consumer_key": "xxxxxxxxxxxxxxxxxxxxxxxxx",
     "consumer_secret": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
     "domain": "localhost",
-    "database_name": "twitter-advanced-blocker",
+    "database_host": "localhost:27017",
     "database_username": "root",
-    "database_password": "example"
+    "database_password": "example",
+    "database_name": "twitter-advanced-blocker"
 }
