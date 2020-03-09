@@ -20,9 +20,3 @@ pub fn load_config() -> Config {
     let config: Config = serde_json::from_str(config_json.as_str()).unwrap();
     config
 }
-
-// ドメインとパスを合成してURLを生成
-pub fn endpoint(path: &str) -> String {
-    let config = load_config();
-    format!("http://{}{}", config.domain, path)
-}
