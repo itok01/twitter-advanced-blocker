@@ -2462,6 +2462,7 @@ version = "0.1.0"
 dependencies = [
  "actix-rt",
  "actix-web",
+ "bson",
  "egg-mode",
  "mongodb",
  "rand 0.7.3",
