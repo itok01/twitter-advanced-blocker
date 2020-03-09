@@ -2,6 +2,7 @@
     "consumer_key": "xxxxxxxxxxxxxxxxxxxxxxxxx",
     "consumer_secret": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
     "domain": "localhost",
+    "secure": false,
     "database_host": "localhost:27017",
     "database_username": "root",
     "database_password": "example",

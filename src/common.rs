@@ -5,7 +5,11 @@ use super::config::*;
 // ドメインとパスを合成してURLを生成
 pub fn endpoint(path: &str) -> String {
     let config = load_config();
-    format!("http://{}{}", config.domain, path)
+    if config.secure {
+        format!("https://{}{}", config.domain, path)
+    } else {
+        format!("http://{}{}", config.domain, path)
+    }
 }
 
 const BASE_STR: &str = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
