@@ -1,0 +1,8 @@
+{
+    "consumer_key": "xxxxxxxxxxxxxxxxxxxxxxxxx",
+    "consumer_secret": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+    "domain": "localhost",
+    "database_name": "twitter-advanced-blocker",
+    "database_username": "root",
+    "database_password": "example"
+}
