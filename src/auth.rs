@@ -2,7 +2,9 @@ use actix_web::http;
 use actix_web::{get, web, HttpRequest, HttpResponse};
 use serde::Deserialize;
 
+use super::common::*;
 use super::config::*;
+use super::database::*;
 
 // Twitterの認証リンクを生成してリダイレクト
 #[get("/auth")]
@@ -20,6 +22,9 @@ async fn auth() -> HttpResponse {
     let auth_url = egg_mode::authorize_url(&request_token);
 
     println!("{:?}", request_token);
+
+    let database = connect_database();
+    let tmp_user_collection = database.collection("tmp_user");
 
     // 認証リンクにリダイレクト
     HttpResponse::TemporaryRedirect()
