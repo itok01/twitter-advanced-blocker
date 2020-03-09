@@ -20,7 +20,7 @@ pub fn connect_database() -> mongodb::Database {
 // データベースの初期化
 pub fn database_init(database: mongodb::Database) {
     // 必要なコレクション
-    let necessary_collection_names: Vec<&str> = vec!["user"];
+    let necessary_collection_names: Vec<&str> = vec!["user", "tmp_user"];
 
     // 存在するコレクション
     let collection_names = database.list_collection_names(None).unwrap();
@@ -36,9 +36,10 @@ pub fn database_init(database: mongodb::Database) {
     // 足りないコレクションを作成
     for necessary_collection_name in necessary_collection_names {
         if !collection_names.contains(&necessary_collection_name.to_string()) {
-            match database
-                .create_collection("user", mongodb::options::CreateCollectionOptions::default())
-            {
+            match database.create_collection(
+                necessary_collection_name,
+                mongodb::options::CreateCollectionOptions::default(),
+            ) {
                 Ok(_) => println!("Created \"{}\" collection.", necessary_collection_name),
                 Err(e) => println!("{}", e),
             }
