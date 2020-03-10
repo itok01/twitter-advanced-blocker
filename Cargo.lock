@@ -2483,7 +2483,6 @@ dependencies = [
  "bson",
  "egg-mode",
  "mongodb",
- "rand 0.7.3",
  "serde",
  "serde_json",
 ]
