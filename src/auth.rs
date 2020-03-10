@@ -170,3 +170,49 @@ async fn callback(web::Query(query): web::Query<CallbackQuery>, session: Session
         }
     }
 }
+
+// セッションの情報に合うトークンをデータベースから取り出す
+async fn get_token(session: Session) -> Result<egg_mode::Token, &'static str> {
+    let oauth_token = match session.get::<String>("oauth_token") {
+        Ok(tmp_user_token) => match tmp_user_token {
+            Some(tmp_user_token) => tmp_user_token,
+            None => String::new(),
+        },
+        Err(e) => {
+            println!("{:?}", e);
+            String::new()
+        }
+    };
+
+    println!("{}", oauth_token);
+
+    // ユーザートークンのコレクションにアクセス
+    let database = connect_database();
+    let user_token_collection = database.collection("user_token");
+
+    let filter = doc! {"token.key": oauth_token};
+    match user_token_collection.find_one(filter, None) {
+        Ok(user_token_doc) => match user_token_doc {
+            Some(user_token_doc) => {
+                // 設定を読み込む
+                let config = load_config();
+                let con_token = egg_mode::KeyPair::new(config.consumer_key, config.consumer_secret);
+
+                // BsonをTokenに変換
+                let user_token: UserToken =
+                    bson::from_bson(bson::Bson::Document(user_token_doc)).unwrap();
+
+                // キーペアの作成
+                let access_token =
+                    egg_mode::KeyPair::new(user_token.token.key, user_token.token.secret);
+
+                Ok(egg_mode::Token::Access {
+                    consumer: con_token,
+                    access: access_token,
+                })
+            }
+            None => Err("Token is not found."),
+        },
+        Err(_) => Err("Token is not found."),
+    }
+}
