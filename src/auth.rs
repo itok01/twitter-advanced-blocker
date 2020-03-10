@@ -100,33 +100,46 @@ async fn callback(web::Query(query): web::Query<CallbackQuery>, session: Session
                 match egg_mode::access_token(con_token, &request_token, query.oauth_verifier).await
                 {
                     Ok(access_token) => {
+                        let token: egg_mode::Token = access_token.0;
                         // MongoDBがUnsignedに対応していないため、ユーザーIDをStringに変換
                         let user_id_u64: u64 = access_token.1;
                         let user_id = format!("{}", user_id_u64);
-                        // ユーザートークンをBsonに変換する
-                        let user_token = UserToken {
-                            id: user_id,
-                            token: Token {
-                                key: request_token.key.to_string(),
-                                secret: request_token.secret.to_string(),
-                            },
-                        };
-                        match bson::to_bson(&user_token).unwrap() {
-                            bson::Bson::Document(request_token_doc) => {
-                                // クッキーにユーザートークンを保存
-                                match session.set("token", &user_token.token.key) {
-                                    Ok(_) => {
-                                        // データベースにリクエストトークンを保存
-                                        let user_token_collection =
-                                            database.collection("user_token");
-                                        match user_token_collection
-                                            .insert_one(request_token_doc, None)
-                                        {
+
+                        match token {
+                            egg_mode::Token::Access { access, .. } => {
+                                // ユーザートークンをBsonに変換する
+                                let user_token = UserToken {
+                                    id: user_id,
+                                    token: Token {
+                                        key: access.key.to_string(),
+                                        secret: access.secret.to_string(),
+                                    },
+                                };
+                                match bson::to_bson(&user_token).unwrap() {
+                                    bson::Bson::Document(request_token_doc) => {
+                                        // クッキーにユーザートークンを保存
+                                        match session.set("oauth_token", &user_token.token.key) {
                                             Ok(_) => {
-                                                // 認証リンクにリダイレクト
-                                                HttpResponse::TemporaryRedirect()
-                                                    .header(http::header::LOCATION, endpoint("/"))
-                                                    .finish()
+                                                // データベースにリクエストトークンを保存
+                                                let user_token_collection =
+                                                    database.collection("user_token");
+                                                match user_token_collection
+                                                    .insert_one(request_token_doc, None)
+                                                {
+                                                    Ok(_) => {
+                                                        // 認証リンクにリダイレクト
+                                                        HttpResponse::TemporaryRedirect()
+                                                            .header(
+                                                                http::header::LOCATION,
+                                                                endpoint("/"),
+                                                            )
+                                                            .finish()
+                                                    }
+                                                    Err(e) => {
+                                                        println!("{:?}", e);
+                                                        HttpResponse::InternalServerError().finish()
+                                                    }
+                                                }
                                             }
                                             Err(e) => {
                                                 println!("{:?}", e);
@@ -134,10 +147,7 @@ async fn callback(web::Query(query): web::Query<CallbackQuery>, session: Session
                                             }
                                         }
                                     }
-                                    Err(e) => {
-                                        println!("{:?}", e);
-                                        HttpResponse::InternalServerError().finish()
-                                    }
+                                    _ => HttpResponse::InternalServerError().finish(),
                                 }
                             }
                             _ => HttpResponse::InternalServerError().finish(),
