@@ -37,7 +37,7 @@ async fn auth() -> HttpResponse {
     let con_token = egg_mode::KeyPair::new(config.consumer_key, config.consumer_secret);
 
     // リクエストトークンを生成
-    let request_token = egg_mode::request_token(&con_token, endpoint("/callback"))
+    let request_token = egg_mode::request_token(&con_token, config.callback)
         .await
         .unwrap();
 

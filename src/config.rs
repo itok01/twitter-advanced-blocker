@@ -7,6 +7,7 @@ pub struct Config {
     pub consumer_secret: String,
     pub domain: String,
     pub secure: bool,
+    pub callback: String,
     pub database_host: String,
     pub database_username: String,
     pub database_password: String,

@@ -3,6 +3,7 @@
     "consumer_secret": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
     "domain": "localhost",
     "secure": false,
+    "callback": "http://localhost/callback",
     "database_host": "localhost:27017",
     "database_username": "root",
     "database_password": "example",
