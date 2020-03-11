@@ -228,3 +228,15 @@ pub async fn get_token(session: Session) -> Result<egg_mode::Token, &'static str
         Err(_) => Err("Token is not found."),
     }
 }
+
+// ユーザートークンをアクセストークンに変換
+pub fn user_token_to_access_token(user_token: egg_mode::KeyPair) -> egg_mode::Token {
+    // 設定を読み込む
+    let config = load_config();
+    let con_token = egg_mode::KeyPair::new(config.consumer_key, config.consumer_secret);
+
+    egg_mode::Token::Access {
+        consumer: con_token,
+        access: user_token,
+    }
+}
