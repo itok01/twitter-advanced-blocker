@@ -10,16 +10,16 @@ use super::database::*;
 
 // リクエストトークン
 #[derive(Serialize, Deserialize)]
-struct Token {
-    key: String,
-    secret: String,
+pub struct Token {
+    pub key: String,
+    pub secret: String,
 }
 
 // ユーザートークン
 #[derive(Serialize, Deserialize)]
-struct UserToken {
-    id: String,
-    token: Token,
+pub struct UserToken {
+    pub id: String,
+    pub token: Token,
 }
 
 // コールバックで受け取る情報
