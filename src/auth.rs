@@ -183,7 +183,7 @@ async fn callback(web::Query(query): web::Query<CallbackQuery>, session: Session
 }
 
 // セッションの情報に合うトークンをデータベースから取り出す
-async fn get_token(session: Session) -> Result<egg_mode::Token, &'static str> {
+pub async fn get_token(session: Session) -> Result<egg_mode::Token, &'static str> {
     let oauth_token = match session.get::<String>("oauth_token") {
         Ok(tmp_user_token) => match tmp_user_token {
             Some(tmp_user_token) => tmp_user_token,
