@@ -31,7 +31,7 @@ struct CallbackQuery {
 
 // Twitterの認証リンクを生成してリダイレクト
 #[get("/auth")]
-async fn auth() -> HttpResponse {
+async fn get_auth_factory() -> HttpResponse {
     // 設定を読み込む
     let config = load_config();
     let con_token = egg_mode::KeyPair::new(config.consumer_key, config.consumer_secret);
@@ -75,7 +75,10 @@ async fn auth() -> HttpResponse {
 
 // コールバックの処理
 #[get("/callback")]
-async fn callback(web::Query(query): web::Query<CallbackQuery>, session: Session) -> HttpResponse {
+async fn get_callback_factory(
+    web::Query(query): web::Query<CallbackQuery>,
+    session: Session,
+) -> HttpResponse {
     // 設定を読み込む
     let config = load_config();
     let con_token = egg_mode::KeyPair::new(config.consumer_key, config.consumer_secret);
