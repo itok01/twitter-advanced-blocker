@@ -86,7 +86,7 @@ async fn callback(web::Query(query): web::Query<CallbackQuery>, session: Session
 
     // リクエストトークンを取り出す
     let filter = doc! {"key": query.oauth_token};
-    match request_token_collection.find_one(filter, None) {
+    match request_token_collection.find_one(filter.clone(), None) {
         Ok(request_token_doc) => match request_token_doc {
             Some(request_token_doc) => {
                 // BsonをTokenに変換
@@ -100,6 +100,9 @@ async fn callback(web::Query(query): web::Query<CallbackQuery>, session: Session
                 match egg_mode::access_token(con_token, &request_token, query.oauth_verifier).await
                 {
                     Ok(access_token) => {
+                        // リクエストトークンを削除
+                        request_token_collection.delete_many(filter, None).ok();
+
                         let token: egg_mode::Token = access_token.0;
                         // MongoDBがUnsignedに対応していないため、ユーザーIDをStringに変換
                         let user_id_u64: u64 = access_token.1;
@@ -116,15 +119,23 @@ async fn callback(web::Query(query): web::Query<CallbackQuery>, session: Session
                                     },
                                 };
                                 match bson::to_bson(&user_token).unwrap() {
-                                    bson::Bson::Document(request_token_doc) => {
+                                    bson::Bson::Document(user_token_doc) => {
                                         // クッキーにユーザートークンを保存
                                         match session.set("oauth_token", &user_token.token.key) {
                                             Ok(_) => {
-                                                // データベースにリクエストトークンを保存
+                                                // ユーザートークンのコレクションにアクセス
                                                 let user_token_collection =
                                                     database.collection("user_token");
+
+                                                // 既存のユーザートークンを削除
+                                                let filter = doc! {"id": &user_token.id};
+                                                user_token_collection
+                                                    .delete_many(filter, None)
+                                                    .ok();
+
+                                                // データベースにユーザートークンを保存
                                                 match user_token_collection
-                                                    .insert_one(request_token_doc, None)
+                                                    .insert_one(user_token_doc, None)
                                                 {
                                                     Ok(_) => {
                                                         // 認証リンクにリダイレクト
