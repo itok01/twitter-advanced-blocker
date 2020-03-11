@@ -184,8 +184,6 @@ async fn get_token(session: Session) -> Result<egg_mode::Token, &'static str> {
         }
     };
 
-    println!("{}", oauth_token);
-
     // ユーザートークンのコレクションにアクセス
     let database = connect_database();
     let user_token_collection = database.collection("user_token");
