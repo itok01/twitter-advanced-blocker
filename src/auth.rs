@@ -1,6 +1,6 @@
 use actix_session::Session;
 use actix_web::http;
-use actix_web::{get, web, HttpResponse};
+use actix_web::{web, HttpResponse};
 use bson::{bson, doc};
 use serde::{Deserialize, Serialize};
 
@@ -24,14 +24,13 @@ pub struct UserToken {
 
 // コールバックで受け取る情報
 #[derive(Deserialize)]
-struct CallbackQuery {
+pub struct CallbackQuery {
     oauth_token: String,
     oauth_verifier: String,
 }
 
 // Twitterの認証リンクを生成してリダイレクト
-#[get("/auth")]
-async fn get_auth_factory() -> HttpResponse {
+pub async fn get_auth_factory() -> HttpResponse {
     // 設定を読み込む
     let config = load_config();
     let con_token = egg_mode::KeyPair::new(config.consumer_key, config.consumer_secret);
@@ -74,8 +73,7 @@ async fn get_auth_factory() -> HttpResponse {
 }
 
 // コールバックの処理
-#[get("/callback")]
-async fn get_callback_factory(
+pub async fn get_callback_factory(
     web::Query(query): web::Query<CallbackQuery>,
     session: Session,
 ) -> HttpResponse {
