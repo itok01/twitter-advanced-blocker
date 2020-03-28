@@ -20,7 +20,8 @@ pub fn connect_database() -> mongodb::Database {
 // データベースの初期化
 pub fn database_init(database: mongodb::Database) {
     // 必要なコレクション
-    let necessary_collection_names: Vec<&str> = vec!["user", "request_token", "user_token"];
+    let necessary_collection_names: Vec<&str> =
+        vec!["user", "request_token", "user_token", "blocklist"];
 
     // 存在するコレクション
     let collection_names = database.list_collection_names(None).unwrap();
