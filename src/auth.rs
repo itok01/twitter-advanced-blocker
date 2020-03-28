@@ -1,6 +1,5 @@
-use actix_session::Session;
 use actix_web::http;
-use actix_web::{web, HttpResponse};
+use actix_web::{cookie::Cookie, web, HttpMessage, HttpRequest, HttpResponse};
 use bson::{bson, doc};
 use serde::{Deserialize, Serialize};
 
@@ -73,10 +72,7 @@ pub async fn get_auth_factory() -> HttpResponse {
 }
 
 // コールバックの処理
-pub async fn get_callback_factory(
-    web::Query(query): web::Query<CallbackQuery>,
-    session: Session,
-) -> HttpResponse {
+pub async fn get_callback_factory(web::Query(query): web::Query<CallbackQuery>) -> HttpResponse {
     // 設定を読み込む
     let config = load_config();
     let con_token = egg_mode::KeyPair::new(config.consumer_key, config.consumer_secret);
@@ -121,37 +117,34 @@ pub async fn get_callback_factory(
                                 };
                                 match bson::to_bson(&user_token).unwrap() {
                                     bson::Bson::Document(user_token_doc) => {
-                                        // クッキーにユーザートークンを保存
-                                        match session.set("oauth_token", &user_token.token.key) {
+                                        // ユーザートークンのコレクションにアクセス
+                                        let user_token_collection =
+                                            database.collection("user_token");
+
+                                        // 既存のユーザートークンを削除
+                                        let filter = doc! {"id": &user_token.id};
+                                        user_token_collection.delete_many(filter, None).ok();
+
+                                        // データベースにユーザートークンを保存
+                                        match user_token_collection.insert_one(user_token_doc, None)
+                                        {
                                             Ok(_) => {
-                                                // ユーザートークンのコレクションにアクセス
-                                                let user_token_collection =
-                                                    database.collection("user_token");
-
-                                                // 既存のユーザートークンを削除
-                                                let filter = doc! {"id": &user_token.id};
-                                                user_token_collection
-                                                    .delete_many(filter, None)
-                                                    .ok();
-
-                                                // データベースにユーザートークンを保存
-                                                match user_token_collection
-                                                    .insert_one(user_token_doc, None)
-                                                {
-                                                    Ok(_) => {
-                                                        // 認証リンクにリダイレクト
-                                                        HttpResponse::TemporaryRedirect()
-                                                            .header(
-                                                                http::header::LOCATION,
-                                                                endpoint("/"),
-                                                            )
-                                                            .finish()
-                                                    }
-                                                    Err(e) => {
-                                                        println!("{:?}", e);
-                                                        HttpResponse::InternalServerError().finish()
-                                                    }
-                                                }
+                                                // 認証リンクにリダイレクト
+                                                // クッキーにユーザートークンを保存
+                                                HttpResponse::TemporaryRedirect()
+                                                    .header(http::header::LOCATION, endpoint("/"))
+                                                    .cookie(
+                                                        Cookie::build(
+                                                            "oauth_token",
+                                                            user_token.token.key,
+                                                        )
+                                                        .domain(config.domain)
+                                                        .path("/")
+                                                        .secure(config.secure)
+                                                        .http_only(true)
+                                                        .finish(),
+                                                    )
+                                                    .finish()
                                             }
                                             Err(e) => {
                                                 println!("{:?}", e);
@@ -183,24 +176,23 @@ pub async fn get_callback_factory(
     }
 }
 
-// セッションの情報に合うトークンをデータベースから取り出す
-pub async fn get_token(session: Session) -> Result<egg_mode::Token, &'static str> {
-    let oauth_token = match session.get::<String>("oauth_token") {
-        Ok(tmp_user_token) => match tmp_user_token {
-            Some(tmp_user_token) => tmp_user_token,
-            None => String::new(),
-        },
-        Err(e) => {
-            println!("{:?}", e);
-            String::new()
+// リクエストのクッキーからユーザートークンを取り出す
+pub fn get_user_token_from_request(req: HttpRequest) -> Result<String, &'static str> {
+    for cookie in req.cookies().unwrap().to_owned() {
+        if cookie.name() == "oauth_token" {
+            return Ok(cookie.value().to_string());
         }
-    };
+    }
+    Err("User token is not found.")
+}
 
+// ユーザートークンに合うトークンをデータベースから取り出す
+pub async fn get_token(user_token: String) -> Result<egg_mode::Token, &'static str> {
     // ユーザートークンのコレクションにアクセス
     let database = connect_database();
     let user_token_collection = database.collection("user_token");
 
-    let filter = doc! {"token.key": oauth_token};
+    let filter = doc! {"token.key": user_token};
     match user_token_collection.find_one(filter, None) {
         Ok(user_token_doc) => match user_token_doc {
             Some(user_token_doc) => {
