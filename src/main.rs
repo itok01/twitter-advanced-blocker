@@ -11,6 +11,7 @@ async fn main() -> std::io::Result<()> {
         App::new()
             .route("/api/auth", web::get().to(get_auth_factory))
             .route("/api/callback", web::get().to(get_callback_factory))
+            .route("/api/signout", web::get().to(get_signout_factory))
     })
     .bind("0.0.0.0:8080")?
     .run()

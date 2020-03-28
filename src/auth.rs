@@ -176,6 +176,26 @@ pub async fn get_callback_factory(web::Query(query): web::Query<CallbackQuery>) 
     }
 }
 
+// コールバックの処理
+pub async fn get_signout_factory() -> HttpResponse {
+    // 設定を読み込む
+    let config = load_config();
+
+    // ホームリダイレクト
+    // クッキーのユーザートークンを削除
+    HttpResponse::TemporaryRedirect()
+        .header(http::header::LOCATION, endpoint("/"))
+        .cookie(
+            Cookie::build("oauth_token", "")
+                .domain(config.domain)
+                .path("/")
+                .secure(config.secure)
+                .http_only(true)
+                .finish(),
+        )
+        .finish()
+}
+
 // リクエストのクッキーからユーザートークンを取り出す
 pub fn get_user_token_from_request(req: HttpRequest) -> Result<String, &'static str> {
     for cookie in req.cookies().unwrap().to_owned() {
