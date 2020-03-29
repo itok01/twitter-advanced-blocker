@@ -250,3 +250,29 @@ pub fn user_token_to_access_token(user_token: egg_mode::KeyPair) -> egg_mode::To
         access: user_token,
     }
 }
+
+// ユーザートークンに合うユーザーIDをデータベースから取り出す
+pub fn get_user_id(token: &egg_mode::Token) -> Result<String, &'static str> {
+    // ユーザートークンのコレクションにアクセス
+    let database = connect_database();
+    let user_token_collection = database.collection("user_token");
+
+    match token {
+        egg_mode::Token::Access { access, .. } => {
+            let filter = doc! {"token.key": access.key.to_string()};
+            match user_token_collection.find_one(filter, None) {
+                Ok(user_token_doc) => match user_token_doc {
+                    Some(user_token_doc) => {
+                        // BsonをTokenに変換
+                        let user_token: UserToken =
+                            bson::from_bson(bson::Bson::Document(user_token_doc)).unwrap();
+                        Ok(user_token.id)
+                    }
+                    None => Err("Token is not found."),
+                },
+                Err(_) => Err("Token is not found."),
+            }
+        }
+        egg_mode::Token::Bearer { .. } => Err("Token is not found."),
+    }
+}
