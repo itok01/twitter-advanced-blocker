@@ -642,8 +642,9 @@ checksum = "4358a9e11b9a09cf52383b451b49a169e8d797b68aa02301ff586d70d9661ea3"
 
 [[package]]
 name = "egg-mode"
-version = "0.14.0"
-source = "git+https://github.com/QuietMisdreavus/twitter-rs.git#976c5cf6c872c024d8c7185510187eaae16a16e7"
+version = "0.14.0-beta.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "a5b5097b3b89f0cdcf7bc3baf1c5d253dec0e8fa86cc5efc1e5156caa1eef901"
 dependencies = [
  "base64 0.11.0",
  "chrono",
@@ -661,6 +662,7 @@ dependencies = [
  "serde",
  "serde_json",
  "sha-1",
+ "thiserror",
  "tokio 0.2.13",
  "url",
 ]
@@ -2089,6 +2091,26 @@ dependencies = [
  "redox_syscall",
  "remove_dir_all",
  "winapi 0.3.8",
+]
+
+[[package]]
+name = "thiserror"
+version = "1.0.14"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "f0570dc61221295909abdb95c739f2e74325e14293b2026b0a7e195091ec54ae"
+dependencies = [
+ "thiserror-impl",
+]
+
+[[package]]
+name = "thiserror-impl"
+version = "1.0.14"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "227362df41d566be41a28f64401e07a043157c21c14b9785a0d8e256f940a8fd"
+dependencies = [
+ "proc-macro2 1.0.9",
+ "quote 1.0.3",
+ "syn 1.0.16",
 ]
 
 [[package]]
