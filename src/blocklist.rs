@@ -121,3 +121,45 @@ pub async fn get_blocklist_from_twitter(token: &egg_mode::Token) -> std::vec::Ve
         .collect();
     blocklist
 }
+
+// データベースにあるユーザーのブロックリストを更新
+pub async fn update_database_blocklists() {
+    println!("HELLO!");
+    // ユーザートークンとブロックリストのコレクションにアクセス
+    let database = connect_database();
+    let user_token_collection = database.collection("user_token");
+    let blocklist_collection = database.collection("blocklist");
+
+    // トークンを取り出す
+    for result in user_token_collection.find(None, None).unwrap() {
+        match result {
+            Ok(user_token_doc) => {
+                let user_token: UserToken =
+                    bson::from_bson(bson::Bson::Document(user_token_doc.clone())).unwrap();
+                let token = user_token_to_access_token(egg_mode::KeyPair::new(
+                    user_token.token.key,
+                    user_token.token.secret,
+                ));
+
+                println!("{}", user_token.id);
+                // 古いブロックリストを削除
+                let filter = doc! {"id": &user_token.id};
+                blocklist_collection.delete_many(filter, None).ok();
+
+                // ブロックリストをBsonに変換
+                let blocklist = Blocklist {
+                    id: user_token.id,
+                    blocklist: get_blocklist_from_twitter(&token).await,
+                };
+                match bson::to_bson(&blocklist).unwrap() {
+                    bson::Bson::Document(blocklist_doc) => {
+                        // データベースにブロックリストを保存
+                        blocklist_collection.insert_one(blocklist_doc, None).ok();
+                    }
+                    _ => {}
+                }
+            }
+            Err(e) => println!("{}", e),
+        }
+    }
+}
