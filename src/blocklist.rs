@@ -20,7 +20,8 @@ pub struct BlocklistRequest {
 #[derive(Serialize)]
 pub struct GetBlocklistResponse {
     ok: bool,
-    blocklist: Option<Blocklist>,
+    id: Option<String>,
+    blocklist: Option<std::vec::Vec<String>>,
 }
 
 #[derive(Serialize)]
@@ -48,11 +49,13 @@ pub async fn get_blocklist_factory(
 
                         HttpResponse::Ok().json(GetBlocklistResponse {
                             ok: true,
-                            blocklist: Option::from(blocklist),
+                            id: Option::from(blocklist.id),
+                            blocklist: Option::from(blocklist.blocklist),
                         })
                     }
                     None => HttpResponse::InternalServerError().json(GetBlocklistResponse {
                         ok: false,
+                        id: None,
                         blocklist: None,
                     }),
                 },
@@ -60,6 +63,7 @@ pub async fn get_blocklist_factory(
                     println!("{}", e);
                     HttpResponse::InternalServerError().json(GetBlocklistResponse {
                         ok: false,
+                        id: None,
                         blocklist: None,
                     })
                 }
@@ -69,6 +73,7 @@ pub async fn get_blocklist_factory(
             println!("{}", e);
             HttpResponse::InternalServerError().json(GetBlocklistResponse {
                 ok: false,
+                id: None,
                 blocklist: None,
             })
         }
