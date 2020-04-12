@@ -642,9 +642,9 @@ checksum = "4358a9e11b9a09cf52383b451b49a169e8d797b68aa02301ff586d70d9661ea3"
 
 [[package]]
 name = "egg-mode"
-version = "0.14.0-beta.1"
+version = "0.14.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a5b5097b3b89f0cdcf7bc3baf1c5d253dec0e8fa86cc5efc1e5156caa1eef901"
+checksum = "bb89a86be94dc0be1397975c57914998ad721d57903ec969de3ccec2a6b9dd41"
 dependencies = [
  "base64 0.11.0",
  "chrono",
