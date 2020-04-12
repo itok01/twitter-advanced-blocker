@@ -30,7 +30,7 @@ pub struct PostBlocklistResponse {
 }
 
 // ユーザーのブロックリストを取得
-pub async fn get_blocklist_factory(
+pub async fn get_blocklist_handler(
     blocklist_request: web::Query<BlocklistRequest>,
 ) -> HttpResponse {
     // トークンを取得
@@ -81,7 +81,7 @@ pub async fn get_blocklist_factory(
 }
 
 // ユーザーのブロックリストを更新
-pub async fn post_blocklist_factory(
+pub async fn post_blocklist_handler(
     blocklist_request: web::Json<BlocklistRequest>,
 ) -> HttpResponse {
     // トークンを取得

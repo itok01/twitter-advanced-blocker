@@ -29,7 +29,7 @@ pub struct CallbackQuery {
 }
 
 // Twitterの認証リンクを生成してリダイレクト
-pub async fn get_auth_factory() -> HttpResponse {
+pub async fn get_auth_handler() -> HttpResponse {
     // 設定を読み込む
     let config = load_config();
     let con_token = egg_mode::KeyPair::new(config.consumer_key, config.consumer_secret);
@@ -72,7 +72,7 @@ pub async fn get_auth_factory() -> HttpResponse {
 }
 
 // コールバックの処理
-pub async fn get_callback_factory(web::Query(query): web::Query<CallbackQuery>) -> HttpResponse {
+pub async fn get_callback_handler(web::Query(query): web::Query<CallbackQuery>) -> HttpResponse {
     // 設定を読み込む
     let config = load_config();
     let con_token = egg_mode::KeyPair::new(config.consumer_key, config.consumer_secret);
@@ -177,7 +177,7 @@ pub async fn get_callback_factory(web::Query(query): web::Query<CallbackQuery>) 
 }
 
 // コールバックの処理
-pub async fn get_signout_factory() -> HttpResponse {
+pub async fn get_signout_handler() -> HttpResponse {
     // 設定を読み込む
     let config = load_config();
 
