@@ -28,6 +28,53 @@ pub struct PostBlocklistResponse {
     ok: bool,
 }
 
+// ユーザーのブロックリストを取得
+pub async fn get_blocklist_factory(
+    blocklist_request: web::Query<BlocklistRequest>,
+) -> HttpResponse {
+    // トークンを取得
+    match get_token(blocklist_request.token.clone()).await {
+        Ok(token) => {
+            let database = connect_database();
+            let blocklist_collection = database.collection("blocklist");
+
+            let filter = doc! {"id": get_user_id(&token).unwrap()};
+            match blocklist_collection.find_one(filter, None) {
+                Ok(blocklist_doc) => match blocklist_doc {
+                    Some(blocklist_doc) => {
+                        // BsonをTokenに変換
+                        let blocklist: Blocklist =
+                            bson::from_bson(bson::Bson::Document(blocklist_doc)).unwrap();
+
+                        HttpResponse::Ok().json(GetBlocklistResponse {
+                            ok: true,
+                            blocklist: Option::from(blocklist),
+                        })
+                    }
+                    None => HttpResponse::InternalServerError().json(GetBlocklistResponse {
+                        ok: false,
+                        blocklist: None,
+                    }),
+                },
+                Err(e) => {
+                    println!("{}", e);
+                    HttpResponse::InternalServerError().json(GetBlocklistResponse {
+                        ok: false,
+                        blocklist: None,
+                    })
+                }
+            }
+        }
+        Err(e) => {
+            println!("{}", e);
+            HttpResponse::InternalServerError().json(GetBlocklistResponse {
+                ok: false,
+                blocklist: None,
+            })
+        }
+    }
+}
+
 // ユーザーのブロックリストを更新
 pub async fn post_blocklist_factory(
     blocklist_request: web::Json<BlocklistRequest>,

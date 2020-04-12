@@ -15,6 +15,7 @@ async fn main() -> std::io::Result<()> {
                 .route("/auth", web::get().to(get_auth_factory))
                 .route("/callback", web::get().to(get_callback_factory))
                 .route("/signout", web::get().to(get_signout_factory))
+                .route("/blocklist", web::get().to(get_blocklist_factory))
                 .route("/blocklist", web::post().to(post_blocklist_factory)),
         )
     })
