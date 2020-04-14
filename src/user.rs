@@ -47,6 +47,42 @@ pub async fn get_user_handler(get_user_request: web::Query<GetUserRequest>) -> H
 }
 
 #[derive(Deserialize)]
+pub struct GetUserIdRequest {
+    token: String,
+    user: String,
+}
+
+#[derive(Serialize)]
+pub struct GetUserIdResponse {
+    ok: bool,
+    id: Option<String>,
+}
+
+// ユーザーのIDを取得
+pub async fn get_user_id_handler(
+    get_user_id_request: web::Query<GetUserIdRequest>,
+) -> HttpResponse {
+    // トークンを取得
+    match get_token(get_user_id_request.token.clone()).await {
+        Ok(token) => {
+            let user = get_user_id_from_twitter(&token, get_user_id_request.user.clone()).await;
+
+            HttpResponse::Ok().json(GetUserIdResponse {
+                ok: true,
+                id: Option::from(format!("{}", user.id)),
+            })
+        }
+        Err(e) => {
+            println!("{}", e);
+            HttpResponse::InternalServerError().json(GetUserIdResponse {
+                ok: false,
+                id: None,
+            })
+        }
+    }
+}
+
+#[derive(Deserialize)]
 pub struct GetAllUserRequest {
     token: String,
 }
@@ -84,6 +120,14 @@ pub async fn get_user_from_twitter(
         .await
         .unwrap()
         .response
+}
+
+// ユーザーのIDを取得
+pub async fn get_user_id_from_twitter(
+    token: &egg_mode::Token,
+    user: String,
+) -> egg_mode::user::TwitterUser {
+    egg_mode::user::show(user, &token).await.unwrap().response
 }
 
 // 登録済みユーザーのIDを取得

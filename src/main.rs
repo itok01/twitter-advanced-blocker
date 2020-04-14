@@ -19,6 +19,7 @@ async fn main() -> std::io::Result<()> {
                 .route("/blocklist", web::get().to(get_blocklist_handler))
                 .route("/blocklist", web::post().to(post_blocklist_handler))
                 .route("/user", web::get().to(get_user_handler))
+                .route("/userid", web::get().to(get_user_id_handler))
                 .route("/alluser", web::get().to(get_all_user_handler)),
         )
     })
