@@ -13,7 +13,13 @@ pub struct Blocklist {
 }
 
 #[derive(Deserialize)]
-pub struct BlocklistRequest {
+pub struct GetBlocklistRequest {
+    token: String,
+    user: String,
+}
+
+#[derive(Deserialize)]
+pub struct PostBlocklistRequest {
     token: String,
 }
 
@@ -31,7 +37,7 @@ pub struct PostBlocklistResponse {
 
 // ユーザーのブロックリストを取得
 pub async fn get_blocklist_handler(
-    blocklist_request: web::Query<BlocklistRequest>,
+    blocklist_request: web::Query<GetBlocklistRequest>,
 ) -> HttpResponse {
     // トークンを取得
     match get_token(blocklist_request.token.clone()).await {
@@ -39,7 +45,11 @@ pub async fn get_blocklist_handler(
             let database = connect_database();
             let blocklist_collection = database.collection("blocklist");
 
-            let filter = doc! {"id": get_user_id(&token).unwrap()};
+            let filter = if blocklist_request.user == "" {
+                doc! {"id": get_user_id(&token).unwrap()}
+            } else {
+                doc! {"id": blocklist_request.user.clone()}
+            };
             match blocklist_collection.find_one(filter, None) {
                 Ok(blocklist_doc) => match blocklist_doc {
                     Some(blocklist_doc) => {
@@ -82,7 +92,7 @@ pub async fn get_blocklist_handler(
 
 // ユーザーのブロックリストを更新
 pub async fn post_blocklist_handler(
-    blocklist_request: web::Json<BlocklistRequest>,
+    blocklist_request: web::Json<PostBlocklistRequest>,
 ) -> HttpResponse {
     // トークンを取得
     match get_token(blocklist_request.token.clone()).await {
