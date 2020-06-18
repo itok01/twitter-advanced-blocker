@@ -105,6 +105,9 @@ pub async fn post_blocklist_handler(
             let database = connect_database();
             let blocklist_collection = database.collection("blocklist");
 
+            let filter = doc! {"id": &blocklist.id};
+            blocklist_collection.delete_many(filter, None).ok();
+
             match bson::to_bson(&blocklist).unwrap() {
                 bson::Bson::Document(blocklist_doc) => {
                     // データベースにブロックリストを保存
@@ -118,6 +121,60 @@ pub async fn post_blocklist_handler(
         Err(e) => {
             println!("{}", e);
             HttpResponse::InternalServerError().json(PostBlocklistResponse { ok: false })
+        }
+    }
+}
+
+#[derive(Deserialize)]
+pub struct PostBlocklistImportRequest {
+    token: String,
+    user: String,
+}
+
+#[derive(Serialize)]
+pub struct PostBlocklistImportResponse {
+    ok: bool,
+}
+
+// ブロックリストをインポート
+pub async fn post_blocklist_import_handler(
+    post_blocklist_import_request: web::Json<PostBlocklistImportRequest>,
+) -> HttpResponse {
+    // トークンを取得
+    match get_token(post_blocklist_import_request.token.clone()).await {
+        Ok(token) => {
+            let database = connect_database();
+            let blocklist_collection = database.collection("blocklist");
+
+            let filter = doc! {"id": post_blocklist_import_request.user.clone()};
+            match blocklist_collection.find_one(filter, None) {
+                Ok(blocklist_doc) => match blocklist_doc {
+                    Some(blocklist_doc) => {
+                        // BsonをTokenに変換
+                        let blocklist: Blocklist =
+                            bson::from_bson(bson::Bson::Document(blocklist_doc)).unwrap();
+
+                        for target_user in blocklist.blocklist {
+                            egg_mode::user::block(target_user.parse::<u64>().unwrap(), &token)
+                                .await
+                                .ok();
+                        }
+
+                        HttpResponse::Ok().json(PostBlocklistImportResponse { ok: true })
+                    }
+                    None => HttpResponse::InternalServerError()
+                        .json(PostBlocklistImportResponse { ok: false }),
+                },
+                Err(e) => {
+                    println!("{}", e);
+                    HttpResponse::InternalServerError()
+                        .json(PostBlocklistImportResponse { ok: false })
+                }
+            }
+        }
+        Err(e) => {
+            println!("{}", e);
+            HttpResponse::InternalServerError().json(PostBlocklistImportResponse { ok: false })
         }
     }
 }

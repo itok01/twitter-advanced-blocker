@@ -25,8 +25,6 @@ pub async fn get_user_handler(get_user_request: web::Query<GetUserRequest>) -> H
         Ok(token) => {
             let user = get_user_from_twitter(&token, get_user_request.user.clone()).await;
 
-            println!("{:?}", user);
-
             HttpResponse::Ok().json(GetUserResponse {
                 ok: true,
                 id: Option::from(user.screen_name),
